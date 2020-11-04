@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import Client, TestCase
 from .models import Post, User
 from datetime import datetime
 from django.utils import timezone
@@ -12,7 +12,7 @@ def createUser(username, email, password):
     return u
 
 # Create your tests here.
-class TestsPost(TestCase):
+class TestsPostModel(TestCase):
 
     def test_get_post_message(self):
         """*** Printing the post needs to be equal to the post message ***"""
@@ -38,6 +38,14 @@ class TestsPost(TestCase):
         p.post(m, u)
         p.save()
         self.assertTrue(abs(p.created_at - timezone.now()) < timezone.timedelta(seconds=5))
+
+class TestNewPostView(TestCase):
+
+    def test_get_index_view(self):
+        """*** Index view request needs to be with response 200 ***"""
+        c = Client()
+        response = c.get(f"/")
+        self.assertEqual(response.status_code, 200)
 
 if __name__ == "__main__":
     unittest.main()

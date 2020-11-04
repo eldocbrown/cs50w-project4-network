@@ -1,5 +1,31 @@
 {% extends "network/layout.html" %}
+{% load static %}
 
 {% block body %}
-    TODO
+    <div id="all-posts-view">
+      <h3>Latests Posts</h3>
+    </div>
+
+    <div id="new-post-view">
+      <h3>New Post</h3>
+      {% if user.is_authenticated %}
+      <div class="newpost_container">
+        <form action="" method="post" style="height:100%;width:100%">
+          {% csrf_token %}
+          {{ postForm.as_p }}
+          <input class="submit_button" type="submit" value="Post">
+        </form>
+      </div>
+      {% else %}
+      Not signed in.
+      {% endif %}
+    </div>
+
+    <div id="following-view">
+      <h3>Following</h3>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/network.js' %}"></script>
 {% endblock %}
