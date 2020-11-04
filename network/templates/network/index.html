@@ -10,10 +10,12 @@
       <h3>New Post</h3>
       {% if user.is_authenticated %}
       <div class="newpost_container">
-        <form action="" method="post" style="height:100%;width:100%">
+        <form action="{% url 'network:post' %}" method="post" style="height:100%;width:100%">
           {% csrf_token %}
+          <div class="form-group">
           {{ postForm.as_p }}
-          <input class="submit_button" type="submit" value="Post">
+          </div>
+          <input class="btn btn-primary" type="submit" value="Post">
         </form>
       </div>
       {% else %}

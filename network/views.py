@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
 
@@ -13,6 +13,22 @@ def index(request):
         "postForm": PostForm()
     });
 
+def post(request):
+    if request.method == "POST":
+        f = PostForm(request.POST)
+        if f.is_valid():
+            newPost = f.save(commit=False)
+            newPost.user = request.user
+            newPost.save()
+            f.save_m2m()
+            return HttpResponseRedirect(reverse("network:index"))
+        else:
+            # TODO: Render error message
+            return render(request, "network/index.html", {
+                "postForm": PostForm()
+            });
+    else:
+        raise Http404("Only POST request allowed on this URL")
 
 def login_view(request):
     if request.method == "POST":

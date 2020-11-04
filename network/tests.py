@@ -2,6 +2,7 @@ from django.test import Client, TestCase
 from .models import Post, User
 from datetime import datetime
 from django.utils import timezone
+from .forms import PostForm
 
 def createUser(username, email, password):
     u = User()
@@ -39,13 +40,26 @@ class TestsPostModel(TestCase):
         p.save()
         self.assertTrue(abs(p.created_at - timezone.now()) < timezone.timedelta(seconds=5))
 
-class TestNewPostView(TestCase):
+class TestIndexView(TestCase):
 
     def test_get_index_view(self):
         """*** Index view request needs to be with response 200 ***"""
         c = Client()
         response = c.get(f"/")
         self.assertEqual(response.status_code, 200)
+
+class TestPostAction(TestCase):
+    def test_post_action_return_200(self):
+        """*** Post action must return 200 ***"""
+        c = Client()
+        response = c.post(f"/post")
+        self.assertEqual(response.status_code, 200)
+
+    def test_post_action_return_404_with_get_request(self):
+        """*** Post action must return 404 error code on GET request ***"""
+        c = Client()
+        response = c.get(f"/post")
+        self.assertEqual(response.status_code, 404)
 
 if __name__ == "__main__":
     unittest.main()
