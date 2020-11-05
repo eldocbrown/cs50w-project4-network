@@ -12,6 +12,8 @@ class Post(models.Model):
 
     def post(self, message, user):
         self.message = message
+        self.user = user
+        self.save()
 
     def __str__(self):
         return self.message

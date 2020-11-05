@@ -3,16 +3,21 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 
-from .models import User
+from .models import User, Post
 from .forms import PostForm
 
 
 def index(request):
+    # TODO: Pagination
+    posts = Post.objects.all().order_by('-created_at')
     return render(request, "network/index.html", {
+        "posts": posts,
         "postForm": PostForm()
     });
 
+@login_required(login_url="network:login")
 def post(request):
     if request.method == "POST":
         f = PostForm(request.POST)

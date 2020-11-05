@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-  document.querySelector('#all-posts-view').style.display = 'none';
+  document.querySelector('#all-posts-view').style.display = 'block';
   document.querySelector('#new-post-view').style.display = 'none';
   document.querySelector('#following-view').style.display = 'none';
 
