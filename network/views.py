@@ -17,6 +17,22 @@ def index(request):
         "postForm": PostForm()
     });
 
+def profile(request, usernamestr):
+    if request.method == "POST":
+        raise Http404("Only GET requests allowed on this URL")
+
+    try:
+        u = User.objects.get(username=usernamestr)
+        followingCount = u.following.count()
+        followersCount = u.followers.all().count()
+    except Exception as e:
+        raise Http404(f"Error while retrieving user data from {usernamestr}")
+
+    return render(request, "network/profile.html", {
+        "followingCount": followingCount,
+        "followersCount": followersCount
+    });
+
 @login_required(login_url="network:login")
 def post(request):
     if request.method == "POST":

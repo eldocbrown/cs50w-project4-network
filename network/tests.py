@@ -93,13 +93,57 @@ class TestAllPosts(TestCase):
 class TestUser(TestCase):
 
     def test_follow(self):
-        """*** should foo follow juan, then juan followers must return foo ***"""
+        """*** Should foo follow juan, then juan followers must return foo ***"""
         foo = createUser("foo", "foo@example.com", "example")
         juan = createUser("juan", "juan@example.com", "example")
         foo.follow(juan)
         self.assertIn(foo, juan.followers.all())
         self.assertIn(juan, foo.following.all())
         self.assertNotIn(foo, juan.following.all())
+
+class TestProfile(TestCase):
+
+    def test_get_profile_view(self):
+        """*** Profile view get request should return 200 on logged out and logged in request ***"""
+        u = createUser("foo", "foo@example.com", "example")
+        c = Client()
+        response = c.get(f"/profile/foo")
+        self.assertEqual(response.status_code, 200)
+        c.login(username='foo', password='example')
+        response = c.get(f"/profile/foo")
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_profile_view_post_request_not_available(self):
+        """*** Profile view get request should return 404 on post request ***"""
+        c = Client()
+        response = c.post(f"/profile/foo")
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_profile_view_post_404_when_user_not_found(self):
+        """*** Profile view get request should return 404 when user is not found ***"""
+        c = Client()
+        response = c.get(f"/profile/foo")
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_profile_view_return_profile_html(self):
+        """*** Profile view get request should return network/profile.html ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        c = Client()
+        response = c.get(f"/profile/foo")
+        self.assertTemplateUsed(response, 'network/profile.html')
+
+    def test_get_profile_view_context_data(self):
+        """*** Profile view get request context should return user followed and following count ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        zoe = createUser("zoe", "zoe@example.com", "example")
+        foo.follow(juan)
+        foo.follow(zoe)
+        zoe.follow(foo)
+        c = Client()
+        response = c.get(f"/profile/foo")
+        self.assertEqual(response.context["followingCount"], 2)
+        self.assertEqual(response.context["followersCount"], 1)
 
 if __name__ == "__main__":
     unittest.main()
