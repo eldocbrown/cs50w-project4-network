@@ -5,3 +5,17 @@
 #postLikesheart {
   height: 15px;
 }
+
+#profileHeaderContainer {
+  display: flex;
+  align-items: baseline;
+}
+
+#buttonFollow {
+  margin-left: 20px;
+}
+
+.usernameLinkPost {
+  text-decoration: none;
+  color: black;
+}

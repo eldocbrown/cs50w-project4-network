@@ -2,21 +2,31 @@
 {% load static %}
 
 {% block body %}
-  <h3>{{ request.user.username }}'s profile</h3>
-  <p>Following <strong>{{ followingCount }}</strong> users and followed by <strong>{{ followersCount }}</strong> other users</p>
-  <div id="user-posts-view">
-    <h4>Latests Posts</h4>
-    {% for p in userPosts %}
-      <div class="container p-3 my-3 border">
-        <strong>{{ p.user }}</strong><br>
-        <small>{{ p.message }}</small><br>
-        <small><i>{{ p.created_at }}</i></small><br>
-        <!-- TODO: Count likes -->
-        <!-- TODO: If logged in, and its not my post add like action -->
-        <img id="postLikesheart" src="/static/network/image/heart.png">&nbsp;<small>0</small>
-      </div>
-    {% empty %}
-    No posts
-    {% endfor %}
+  <div class="container-fluid">
+    <div id="profileHeaderContainer">
+        <h3>{{ usernamestr }}'s profile</h3>
+        {% if user.is_authenticated and request.user.username != usernamestr %}
+        <button type="button" class="btn-sm btn-outline-primary rounded-pill" id="buttonFollow">Follow</button>
+        {% endif %}
+    </div>
+    <p>Following <strong>{{ followingCount }}</strong> users and followed by <strong>{{ followersCount }}</strong> other users</p>
+    <div class="container-fluid" id="user-posts-view">
+      <h4>Latests Posts</h4>
+      {% for p in userPosts %}
+        <div class="container p-3 my-3 border">
+          <small>{{ p.message }}</small><br>
+          <small><i>{{ p.created_at }}</i></small><br>
+          <!-- TODO: Count likes -->
+          <!-- TODO: If logged in, and its not my post add like action -->
+          <img id="postLikesheart" src="/static/network/image/heart.png">&nbsp;<small>0</small>
+        </div>
+      {% empty %}
+      No posts
+      {% endfor %}
+    </div>
   </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/profile.js' %}"></script>
 {% endblock %}

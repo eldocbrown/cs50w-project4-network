@@ -161,5 +161,12 @@ class TestProfile(TestCase):
         self.assertEqual(response.context["userPosts"][1].message, "Second post")
         self.assertEqual(response.context["userPosts"][0].message, "Last post")
 
+    def test_get_profile_view_context_data(self):
+        """*** Profile view get request context should return username ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        c = Client()
+        response = c.get(f"/profile/foo")
+        self.assertEqual(response.context["usernamestr"], "foo")
+
 if __name__ == "__main__":
     unittest.main()

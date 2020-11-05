@@ -6,7 +6,7 @@
       <h3>Latests Posts</h3>
       {% for p in posts %}
         <div class="container p-3 my-3 border">
-          <strong>{{ p.user }}</strong><br>
+          <a class="usernameLinkPost" href="/profile/{{ p.user }}"><strong>{{ p.user }}</strong></a><br>
           <small>{{ p.message }}</small><br>
           <small><i>{{ p.created_at }}</i></small><br>
           <!-- TODO: Count likes -->

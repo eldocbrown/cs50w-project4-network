@@ -32,7 +32,8 @@ def profile(request, usernamestr):
     return render(request, "network/profile.html", {
         "followingCount": followingCount,
         "followersCount": followersCount,
-        "userPosts": userPosts
+        "userPosts": userPosts,
+        "usernamestr": usernamestr
     });
 
 @login_required(login_url="network:login")
