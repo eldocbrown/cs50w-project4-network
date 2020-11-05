@@ -168,5 +168,22 @@ class TestProfile(TestCase):
         response = c.get(f"/profile/foo")
         self.assertEqual(response.context["usernamestr"], "foo")
 
+    def test_get_profile_view_context_data(self):
+        """*** Profile view get request context should return following flag true if user is followed ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        zoe = createUser("zoe", "zoe@example.com", "example")
+        foo.follow(juan)
+        foo.follow(zoe)
+        zoe.follow(foo)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/profile/zoe")
+        self.assertTrue(response.context["following"])
+        c.logout()
+        c.login(username='zoe', password='example')
+        response = c.get(f"/profile/juan")
+        self.assertFalse(response.context["following"])
+
 if __name__ == "__main__":
     unittest.main()

@@ -21,11 +21,15 @@ def profile(request, usernamestr):
     if request.method == "POST":
         raise Http404("Only GET requests allowed on this URL")
 
+    following = False
     try:
         u = User.objects.get(username=usernamestr)
         followingCount = u.following.count()
         followersCount = u.followers.all().count()
         userPosts = u.usrPosts.all().order_by("-created_at")
+        if request.user.is_authenticated:
+            myUser = User.objects.get(username=request.user.username)
+            following = (u in myUser.following.all())
     except Exception as e:
         raise Http404(f"Error while retrieving user data from {usernamestr}")
 
@@ -33,7 +37,8 @@ def profile(request, usernamestr):
         "followingCount": followingCount,
         "followersCount": followersCount,
         "userPosts": userPosts,
-        "usernamestr": usernamestr
+        "usernamestr": usernamestr,
+        "following": following
     });
 
 @login_required(login_url="network:login")
