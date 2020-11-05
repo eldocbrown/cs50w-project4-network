@@ -25,12 +25,14 @@ def profile(request, usernamestr):
         u = User.objects.get(username=usernamestr)
         followingCount = u.following.count()
         followersCount = u.followers.all().count()
+        userPosts = u.usrPosts.all().order_by("-created_at")
     except Exception as e:
         raise Http404(f"Error while retrieving user data from {usernamestr}")
 
     return render(request, "network/profile.html", {
         "followingCount": followingCount,
-        "followersCount": followersCount
+        "followersCount": followersCount,
+        "userPosts": userPosts
     });
 
 @login_required(login_url="network:login")

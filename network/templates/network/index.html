@@ -10,8 +10,8 @@
           <small>{{ p.message }}</small><br>
           <small><i>{{ p.created_at }}</i></small><br>
           <!-- TODO: Count likes -->
-          <!-- TODO: If logged in, add like action -->
-          <img id="postLikesheart" src="static/network/image/heart.png">&nbsp;<small>0</small>
+          <!-- TODO: If logged in, and its not my post add like action -->
+          <img id="postLikesheart" src="/static/network/image/heart.png">&nbsp;<small>0</small>
         </div>
       {% empty %}
       No posts
