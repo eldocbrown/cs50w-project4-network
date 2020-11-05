@@ -78,7 +78,7 @@ class TestAllPosts(TestCase):
 
     def test_get_all_posts(self):
         """*** Index should return 2 posts ***"""
-        u = createUser("foo", "foo@example.com", "exmaple")
+        u = createUser("foo", "foo@example.com", "example")
         m = "New post message 1"
         p = Post()
         p.post(m, u)
@@ -89,6 +89,17 @@ class TestAllPosts(TestCase):
         response = c.get(f"/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["posts"].count(), 2)
+
+class TestUser(TestCase):
+
+    def test_follow(self):
+        """*** should foo follow juan, then juan followers must return foo ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        foo.follow(juan)
+        self.assertIn(foo, juan.followers.all())
+        self.assertIn(juan, foo.following.all())
+        self.assertNotIn(foo, juan.following.all())
 
 if __name__ == "__main__":
     unittest.main()

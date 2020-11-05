@@ -3,7 +3,11 @@ from django.db import models
 
 
 class User(AbstractUser):
-    pass
+    following = models.ManyToManyField('User', related_name="followers")
+
+    def follow(self, followed):
+        self.following.add(followed)
+        self.save()
 
 class Post(models.Model):
     message = models.TextField()
