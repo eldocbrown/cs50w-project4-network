@@ -185,5 +185,62 @@ class TestProfile(TestCase):
         response = c.get(f"/profile/juan")
         self.assertFalse(response.context["following"])
 
+class TestFollow(TestCase):
+
+    def test_follow_ok(self):
+        """*** Should a user follow another user, return response 200 on posting follow/<str:usernamestr> ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/follow/juan")
+        self.assertEqual(response.status_code, 200)
+
+    def test_follow_dont_allow_get_request(self):
+        """*** Should a user follow another user via GET or PUT, return 404 response ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/follow/juan")
+        self.assertEqual(response.status_code, 404)
+        response = c.put(f"/follow/juan")
+        self.assertEqual(response.status_code, 404)
+
+    def test_follow_return_302_logged_out(self):
+        """*** Follow action should return 302 on logged out request ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        c = Client()
+        response = c.post(f"/follow/juan")
+        self.assertEqual(response.status_code, 302)
+
+    def test_follow_return_404_when_user_not_found(self):
+        """*** Follow request should return 404 when user is not found ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/follow/zoe")
+        self.assertEqual(response.status_code, 404)
+
+    def test_follow_cant_follow_myself(self):
+        """*** Should I follow myself, then return 404 ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/follow/foo")
+        self.assertEqual(response.status_code, 404)
+
+    def test_follow_cant_follow_again(self):
+        """*** Should I follow a user that I am already following, then return 404 ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/follow/juan")
+        response = c.post(f"/follow/juan")
+        self.assertEqual(response.status_code, 404)
+
 if __name__ == "__main__":
     unittest.main()
