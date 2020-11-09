@@ -242,5 +242,67 @@ class TestFollow(TestCase):
         response = c.post(f"/follow/juan")
         self.assertEqual(response.status_code, 404)
 
+class TestUnfollow(TestCase):
+
+    def test_follow_ok(self):
+        """*** Should a user unfollow another user, return response 200 on posting unfollow/<str:usernamestr> ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        foo.follow(juan)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/unfollow/juan")
+        self.assertEqual(response.status_code, 200)
+
+    def test_unfollow_allow_only_post_request(self):
+        """*** Should a user unfollow another user via GET or PUT, return 404 response ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        foo.follow(juan)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/unfollow/juan")
+        self.assertEqual(response.status_code, 404)
+        response = c.put(f"/unfollow/juan")
+        self.assertEqual(response.status_code, 404)
+
+    def test_unfollow_return_302_logged_out(self):
+        """*** Unfollow action should return 302 on logged out request ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        foo.follow(juan)
+        c = Client()
+        response = c.post(f"/unfollow/juan")
+        self.assertEqual(response.status_code, 302)
+
+    def test_unfollow_cant_unfollow_myself(self):
+        """*** Should I unfollow myself, then return 404 ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/unfollow/foo")
+        self.assertEqual(response.status_code, 404)
+
+    def test_unfollow_return_404_when_user_not_found(self):
+        """*** Unfollow request should return 404 when user is not found ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        foo.follow(juan)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/unfollow/zoe")
+        self.assertEqual(response.status_code, 404)
+
+    def test_unfollow_cant_unfollow_again(self):
+        """*** Should I unfollow a user that I am not already following, then return 404 ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        foo.follow(juan)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/unfollow/juan")
+        response = c.post(f"/unfollow/juan")
+        self.assertEqual(response.status_code, 404)
+
 if __name__ == "__main__":
     unittest.main()

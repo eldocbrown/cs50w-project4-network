@@ -59,6 +59,24 @@ def follow(request, usernamestr):
     return HttpResponse('OK')
 
 @login_required(login_url="network:login")
+def unfollow(request, usernamestr):
+    if request.method != "POST":
+        raise Http404("Only POST requests allowed on this URL")
+    if request.user.username == usernamestr:
+        raise Http404("Recursive following not allowed")
+
+    try:
+        myUser = User.objects.get(username=request.user.username)
+        u = User.objects.get(username=usernamestr)
+        if u not in myUser.following.all():
+            raise Http404(f"You are not following {usernamestr}")
+        myUser.unfollow(u)
+    except User.DoesNotExist:
+        raise Http404(f"User {usernamestr} not found")
+
+    return HttpResponse('OK')
+
+@login_required(login_url="network:login")
 def post(request):
     if request.method == "POST":
         f = PostForm(request.POST)

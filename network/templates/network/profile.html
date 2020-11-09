@@ -6,7 +6,10 @@
     <div id="profileHeaderContainer">
         <h3>{{ usernamestr }}'s profile</h3>
         {% if user.is_authenticated and request.user.username != usernamestr %}
-        <button type="button" class="btn-sm btn-outline-primary rounded-pill" id="buttonFollow" data-following="{{ following }}">Follow</button>
+        <script>
+        var csrftoken = '{{ csrf_token }}';
+        </script>
+        <button type="button" class="btn-sm btn-outline-primary rounded-pill" id="buttonFollow" data-following="{{ following }}" data-user="{{ usernamestr }}">Follow</button>
         {% endif %}
     </div>
     <p>Following <strong>{{ followingCount }}</strong> users and followed by <strong>{{ followersCount }}</strong> other users</p>

@@ -14,35 +14,75 @@ function evaluateFollowStatus() {
   if (buttonFollow !== null) {
     // if i am following this users
     if (buttonFollow.dataset.following === 'True') {
-      // show button text FOLLOWING (filled blue)
-      buttonFollow.className = 'btn-sm btn-primary rounded-pill';
-      buttonFollow.innerHTML = 'Following';
-      // show button text UNFOLLOW on mouseover (filled red)
-      buttonFollow.addEventListener('mouseover', (event) => {
-        buttonFollow.className = 'btn-sm btn-danger rounded-pill';
-        buttonFollow.innerHTML = 'Unfollow';
-      });
-      // show button text UNFOLLOW on mouseover (filled red)
-      buttonFollow.addEventListener('mouseout', (event) => {
-        buttonFollow.className = 'btn-sm btn-primary rounded-pill';
-        buttonFollow.innerHTML = 'Following';
-      });
+      setButtonToFollowingState(buttonFollow)
+    // if i am NOT following
     } else {
-      // show button text FOLLOW (outlined blue)
-      buttonFollow.className = 'btn-sm btn-outline-primary rounded-pill';
-      buttonFollow.innerHTML = 'Follow';
+      setButtonToNotFollowingState(buttonFollow);
     }
   }
 }
 
 function handleFollowClick(event) {
-  if (event.currentTarget.dataset.following === 'True') {
-    // TODO: put unfollow
-    // TODO: .then event.currentTarget.dataset.following = False
+  const buttonFollow = event.currentTarget;
+  if (buttonFollow.dataset.following === 'True') {
+    const r1 = new Request(
+    `/unfollow/${buttonFollow.dataset.user}`,
+    {headers: {'X-CSRFToken': csrftoken}}
+    );
+    fetch(r1, {
+    method: 'POST',
+    mode: 'same-origin'
+    })
+    .then(() => {
+      setButtonToNotFollowingState(buttonFollow);
+    })
   } else {
-    // TODO: put follow
-    // TODO: .then event.currentTarget.dataset.following = True
+    const r2 = new Request(
+    `/follow/${buttonFollow.dataset.user}`,
+    {headers: {'X-CSRFToken': csrftoken}}
+    );
+    fetch(r2, {
+    method: 'POST',
+    mode: 'same-origin'
+    })
+    .then(() => {
+      setButtonToFollowingState(buttonFollow);
+    })
   }
-  evaluateFollowStatus();
-  event.currentTarget.blur();
+  buttonFollow.blur();
+}
+
+function resetButtonFollowEvents(buttonFollow) {
+  buttonFollow.removeEventListener('mouseover', handleFollowMouseOver);
+  buttonFollow.removeEventListener('mouseout', handleFollowMouseOut);
+}
+
+function setButtonToFollowingState(buttonFollow) {
+  resetButtonFollowEvents(buttonFollow);
+  // show button text FOLLOWING (filled blue)
+  buttonFollow.className = 'btn-sm btn-primary rounded-pill';
+  buttonFollow.innerHTML = 'Following';
+  buttonFollow.addEventListener('mouseover', handleFollowMouseOver);
+  buttonFollow.addEventListener('mouseout', handleFollowMouseOut);
+  buttonFollow.dataset.following = 'True';
+}
+
+function setButtonToNotFollowingState(buttonFollow) {
+  resetButtonFollowEvents(buttonFollow);
+  // show button text FOLLOW (outlined blue)
+  buttonFollow.className = 'btn-sm btn-outline-primary rounded-pill';
+  buttonFollow.innerHTML = 'Follow';
+  buttonFollow.dataset.following = 'False';
+}
+
+function handleFollowMouseOver(event) {
+  // show button text UNFOLLOW on mouseover (filled red)
+  event.currentTarget.className = 'btn-sm btn-danger rounded-pill';
+  event.currentTarget.innerHTML = 'Unfollow';
+}
+
+function handleFollowMouseOut(event) {
+  // show button text UNFOLLOW on mouseover (filled red)
+  event.currentTarget.className = 'btn-sm btn-primary rounded-pill';
+  event.currentTarget.innerHTML = 'Following';
 }

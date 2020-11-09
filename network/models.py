@@ -9,6 +9,10 @@ class User(AbstractUser):
         self.following.add(followed)
         self.save()
 
+    def unfollow(self, followed):
+        self.following.remove(followed)
+        self.save()
+
 class Post(models.Model):
     message = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="usrPosts", default=1)
