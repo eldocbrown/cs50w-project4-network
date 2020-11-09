@@ -3,6 +3,7 @@ from .models import Post, User
 from datetime import datetime
 from django.utils import timezone
 from .forms import PostForm
+import json
 
 def createUser(username, email, password):
     u = User()
@@ -303,6 +304,38 @@ class TestUnfollow(TestCase):
         response = c.post(f"/unfollow/juan")
         response = c.post(f"/unfollow/juan")
         self.assertEqual(response.status_code, 404)
+
+class TestPostsRequest(TestCase):
+
+    def test_posts_filter_all_return_200(self):
+        """*** Should I GET /posts/all, return 200 ***"""
+        c = Client()
+        response = c.get(f"/posts/all")
+        self.assertEqual(response.status_code, 200)
+
+    def test_posts_filter_all_return_all_posts(self):
+        """*** Should I GET /posts/all, return all posts ***"""
+        u = createUser("foo", "foo@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, u)
+        m = "New post message 2"
+        p = Post()
+        p.post(m, u)
+        c = Client()
+        response = c.get(f"/posts/all")
+        data = json.loads(response.content)
+        self.assertEqual(len(data), 2)
+
+class TestModelPost(TestCase):
+
+    def test_model_post_serialize(self):
+        """*** Should a post be created, then can be serialized ***"""
+        u = createUser("foo", "foo@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, u)
+        self.assertJSONEqual("{\"message\": \"New post message 1\",\"user\": {\"username\": \"foo\"}, \"created_at\": \"" + datetime.now().strftime("%b %-d %Y, %-I:%M %p") + "\"}", p.serialize())
 
 if __name__ == "__main__":
     unittest.main()

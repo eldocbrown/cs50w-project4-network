@@ -13,6 +13,11 @@ class User(AbstractUser):
         self.following.remove(followed)
         self.save()
 
+    def serialize(self):
+        return {
+            "username": self.username
+        }
+
 class Post(models.Model):
     message = models.TextField()
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="usrPosts", default=1)
@@ -25,3 +30,10 @@ class Post(models.Model):
 
     def __str__(self):
         return self.message
+
+    def serialize(self):
+        return {
+            "message": self.message,
+            "user": self.user.serialize(),
+            "created_at": self.created_at.strftime("%b %-d %Y, %-I:%M %p")
+        }

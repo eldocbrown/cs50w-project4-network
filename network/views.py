@@ -4,6 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 
 from .models import User, Post
 from .forms import PostForm
@@ -17,6 +18,22 @@ def index(request):
         "postForm": PostForm()
     });
 
+def posts(request, filter):
+    # filter: all
+    posts = Post.objects.all().order_by('-created_at')
+    return JsonResponse([post.serialize() for post in posts], safe=False)
+"""
+@login_required(login_url="network:login")
+def following(request):
+    # TODO: Pagination
+    myUser = User.objects.get(username=request.user.username)
+    usersFollowed = myUser.following.all()
+    posts = Post.objects.filter(user__in=usersFollowed).order_by('-created_at')
+    return render(request, "network/index.html", {
+        "posts": posts,
+        "postForm": PostForm()
+    });
+"""
 def profile(request, usernamestr):
     if request.method == "POST":
         raise Http404("Only GET requests allowed on this URL")

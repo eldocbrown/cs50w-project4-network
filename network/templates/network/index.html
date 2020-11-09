@@ -2,20 +2,8 @@
 {% load static %}
 
 {% block body %}
-    <div id="all-posts-view">
-      <h3>Latests Posts</h3>
-      {% for p in posts %}
-        <div class="container p-3 my-3 border">
-          <a class="usernameLinkPost" href="/profile/{{ p.user }}"><strong>{{ p.user }}</strong></a><br>
-          <small>{{ p.message }}</small><br>
-          <small><i>{{ p.created_at }}</i></small><br>
-          <!-- TODO: Count likes -->
-          <!-- TODO: If logged in, and its not my post add like action -->
-          <img id="postLikesheart" src="/static/network/image/heart.png">&nbsp;<small>0</small>
-        </div>
-      {% empty %}
-      No posts
-      {% endfor %}
+    <div id="posts-view">
+      <h3 id="indexHeading"></h3>
     </div>
 
     <div id="new-post-view">
@@ -33,10 +21,6 @@
       {% else %}
       Not signed in.
       {% endif %}
-    </div>
-
-    <div id="following-view">
-      <h3>Following</h3>
     </div>
 {% endblock %}
 
