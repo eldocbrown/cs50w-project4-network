@@ -19,9 +19,8 @@
         <div class="container p-3 my-3 border">
           <small>{{ p.message }}</small><br>
           <small><i>{{ p.created_at }}</i></small><br>
-          <!-- TODO: Count likes -->
           <!-- TODO: If logged in, and its not my post add like action -->
-          <img id="postLikesheart" src="/static/network/image/heart.png">&nbsp;<small>0</small>
+          <img id="postLikesheart" src="/static/network/image/heart.png">&nbsp;<small>{{ p.likeCount }}</small>
         </div>
       {% empty %}
       No posts

@@ -83,6 +83,7 @@ function addPost(contents) {
   // create post container
   const post = document.createElement('div');
   post.className = 'container p-3 my-3 border';
+  post.setAttribute('id', contents.id);
   // create user link
   const link = document.createElement('a');
   link.className = 'usernameLinkPost';
@@ -115,7 +116,7 @@ function addPost(contents) {
   post.append(imageHeart);
   // TODO: count likes
   const likeCount = document.createElement('small');
-  likeCount.innerHTML = '0';
+  likeCount.innerHTML = contents.likes;
   post.append(document.createTextNode("\u00A0"));
   post.append(likeCount);
 

@@ -47,7 +47,28 @@ class TestsPostModel(TestCase):
         m = "New post message 1"
         p = Post()
         p.post(m, u)
-        self.assertJSONEqual("{\"message\": \"New post message 1\",\"user\": {\"username\": \"foo\"}, \"created_at\": \"" + datetime.now().strftime("%b %-d %Y, %-I:%M %p") + "\"}", p.serialize())
+        self.assertJSONEqual("{\"id\": 1, \"message\": \"New post message 1\",\"user\": {\"username\": \"foo\"},\"likes\": 0, \"created_at\": \"" + datetime.now().strftime("%b %-d %Y, %-I:%M %p") + "\"}", p.serialize())
+
+    def test_model_post_serialize_like_count(self):
+        """*** Should foo like juan's post, then like count is serialized ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, juan)
+        foo.like(p)
+        self.assertJSONEqual("{\"id\": 1, \"message\": \"New post message 1\",\"user\": {\"username\": \"juan\"},\"likes\": 1, \"created_at\": \"" + datetime.now().strftime("%b %-d %Y, %-I:%M %p") + "\"}", p.serialize())
+
+    def test_like_count_2(self):
+        """*** Should foo and juan liked zoe's post, then likeCount should return 2 ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        zoe = createUser("zoe", "zoe@example.com", "example")
+        p = Post()
+        p.post("First post", zoe)
+        foo.like(p)
+        juan.like(p)
+        self.assertEqual(p.likeCount(), 2)
 
 class TestUserModel(TestCase):
 
@@ -59,6 +80,58 @@ class TestUserModel(TestCase):
         self.assertIn(foo, juan.followers.all())
         self.assertIn(juan, foo.following.all())
         self.assertNotIn(foo, juan.following.all())
+
+    def test_like(self):
+        """*** Should foo like juan's post, then liking objects contains that post ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, juan)
+        foo.like(p)
+        self.assertIn(p, User.objects.get(username=foo.username).liking.all())
+
+    def test_unlike(self):
+        """*** Should foo unlike juan's post, then liking objects does not contains juan's post ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, juan)
+        foo.like(p)
+        foo.unlike(p)
+        self.assertNotIn(p, User.objects.get(username=foo.username).liking.all())
+
+    def test_like_twice_unallowed(self):
+        """*** Should foo like juan's post twice, then an exception is raised ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, juan)
+        foo.like(p)
+        with self.assertRaises(Exception, ) as cm:
+            foo.like(p)
+        self.assertEqual(str(cm.exception), "Cannot like a post twice")
+
+    def test_like_my_post_unallowed(self):
+        """*** Should foo like his own post, then an exception is raised ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, foo)
+        with self.assertRaises(Exception, ) as cm:
+            foo.like(p)
+        self.assertEqual(str(cm.exception), "Cannot like your own post")
+
+    def test_unlike_not_found(self):
+        """*** Should foo unlike an unexisting post, then an exception is raised ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        with self.assertRaises(Exception, ) as cm:
+            foo.unlike(p)
+        self.assertEqual(str(cm.exception), "You must like a post before liking it")
 
 class TestIndexView(TestCase):
 
@@ -93,6 +166,63 @@ class TestPostAction(TestCase):
         c.login(username='foo', password='example')
         response = c.get(f"/post")
         self.assertEqual(response.status_code, 404)
+
+class TestLikeAction(TestCase):
+
+    def test_like_action_return_200(self):
+        """*** Should foo like juan's post, then response 200 should be returned ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, juan)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/like/1")
+        self.assertEqual(response.status_code, 200)
+
+    def test_like_return_404_with_get_request(self):
+        """*** Like action must return 404 error code on GET request ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/like/1")
+        self.assertEqual(response.status_code, 404)
+
+    def test_like_action_return_302_logged_out(self):
+        """*** Like action should return 302 on logged out request ***"""
+        c = Client()
+        response = c.post(f"/like/1")
+        self.assertEqual(response.status_code, 302)
+
+class TestUnlikeAction(TestCase):
+
+    def test_unlike_action_return_200(self):
+        """*** Should foo unlike juan's post, then response 200 should be returned ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, juan)
+        foo.like(p)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.post(f"/unlike/1")
+        self.assertEqual(response.status_code, 200)
+
+    def test_unlike_return_404_with_get_request(self):
+        """*** Unlike action must return 404 error code on GET request ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/unlike/1")
+        self.assertEqual(response.status_code, 404)
+
+    def test_unlike_action_return_302_logged_out(self):
+        """*** Unlike action should return 302 on logged out request ***"""
+        c = Client()
+        response = c.post(f"/unlike/1")
+        self.assertEqual(response.status_code, 302)
 
 class TestProfile(TestCase):
 

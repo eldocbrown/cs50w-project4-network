@@ -97,6 +97,26 @@ def unfollow(request, usernamestr):
     return HttpResponse('OK')
 
 @login_required(login_url="network:login")
+def like(request, id):
+    if request.method != "POST":
+        raise Http404("Only POST requests allowed on this URL")
+
+    myUser = User.objects.get(username=request.user.username)
+    post = Post.objects.get(pk=id)
+    myUser.like(post)
+    return HttpResponse('OK')
+
+@login_required(login_url="network:login")
+def unlike(request, id):
+    if request.method != "POST":
+        raise Http404("Only POST requests allowed on this URL")
+
+    myUser = User.objects.get(username=request.user.username)
+    post = Post.objects.get(pk=id)
+    myUser.unlike(post)
+    return HttpResponse('OK')
+
+@login_required(login_url="network:login")
 def post(request):
     if request.method == "POST":
         f = PostForm(request.POST)

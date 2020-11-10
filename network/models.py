@@ -4,6 +4,7 @@ from django.db import models
 
 class User(AbstractUser):
     following = models.ManyToManyField('User', related_name="followers")
+    liking = models.ManyToManyField('Post', related_name="likers")
 
     def follow(self, followed):
         self.following.add(followed)
@@ -17,6 +18,22 @@ class User(AbstractUser):
         return {
             "username": self.username
         }
+
+    def like(self, post):
+        if self.username == post.user.username:
+            raise Exception("Cannot like your own post")
+        likes = self.liking.all()
+        if post in likes:
+            raise Exception("Cannot like a post twice")
+        self.liking.add(post)
+        self.save
+
+    def unlike(self, post):
+        likes = self.liking.all()
+        if post not in likes:
+            raise Exception("You must like a post before liking it")
+        self.liking.remove(post)
+        self.save
 
 class Post(models.Model):
     message = models.TextField()
@@ -33,7 +50,12 @@ class Post(models.Model):
 
     def serialize(self):
         return {
+            "id": self.id,
             "message": self.message,
             "user": self.user.serialize(),
+            "likes": self.likeCount(),
             "created_at": self.created_at.strftime("%b %-d %Y, %-I:%M %p")
         }
+
+    def likeCount(self):
+        return self.likers.all().count()
