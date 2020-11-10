@@ -2,8 +2,19 @@
 {% load static %}
 
 {% block body %}
+    {% if user.is_authenticated %}
+    <div class="btn-group btn-group-toggle" data-toggle="buttons" id="posts-selector">
+      <label id="allPostsLabel" class="btn btn-outline-secondary active">
+        <input type="radio" name="options" id="allPosts" autocomplete="off">All
+      </label>
+      <label id="followingPostsLabel" class="btn btn-outline-secondary">
+        <input type="radio" name="options" id="followingPosts" autocomplete="off">Following
+      </label>
+    </div>
+    {% endif %}
+
     <div id="posts-view">
-      <h3 id="indexHeading"></h3>
+      <h3>Latest Posts</h3>
     </div>
 
     <div id="new-post-view">

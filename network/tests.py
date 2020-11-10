@@ -307,14 +307,30 @@ class TestUnfollow(TestCase):
 
 class TestPostsRequest(TestCase):
 
+    allowedFilters = ["all", "following"]
+
     def test_posts_filter_all_return_200(self):
         """*** Should I GET /posts/all, return 200 ***"""
         c = Client()
         response = c.get(f"/posts/all")
         self.assertEqual(response.status_code, 200)
 
+    def test_posts_filter_all_return_404_on_post_request(self):
+        """*** Should I POST /posts/all, then return 404 ***"""
+        c = Client()
+        response = c.post(f"/posts/all")
+        self.assertEqual(response.status_code, 404)
+
+    def test_posts_filter_following_logged_in_return_200(self):
+        """*** Should I GET /posts/following when logged in, return 200 ***"""
+        u = createUser("foo", "foo@example.com", "example")
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/posts/following")
+        self.assertEqual(response.status_code, 200)
+
     def test_posts_filter_all_return_all_posts(self):
-        """*** Should I GET /posts/all, return all posts ***"""
+        """*** Should I GET /posts/all, then return all posts ***"""
         u = createUser("foo", "foo@example.com", "example")
         m = "New post message 1"
         p = Post()
@@ -326,6 +342,62 @@ class TestPostsRequest(TestCase):
         response = c.get(f"/posts/all")
         data = json.loads(response.content)
         self.assertEqual(len(data), 2)
+
+    def test_posts_filter_following_return_404_on_logged_out_request(self):
+        """*** Should I GET /posts/following when logged out, then return 404 ***"""
+        c = Client()
+        response = c.get(f"/posts/following")
+        self.assertEqual(response.status_code, 404)
+
+    def test_posts_filter_following_return_404_on_unrecognized_filter(self):
+        """*** Should I GET /posts/unrecognized, then return 404 ***"""
+        c = Client()
+        response = c.get(f"/posts/unrecognized")
+        self.assertEqual(response.status_code, 404)
+
+    def test_posts_filter_following(self):
+        """*** Should foo follow juan, then /posts/following should return juan's posts in reverse order ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        foo.follow(juan)
+        m1 = "New post message 1"
+        p = Post()
+        p.post(m1, juan)
+        m2 = "New post message 2"
+        p = Post()
+        p.post(m2, juan)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/posts/following")
+        data = json.loads(response.content)
+        self.assertEqual(len(data), 2)
+        self.assertEqual(data[0]["message"], m2)
+        self.assertEqual(data[1]["message"], m1)
+
+    def test_posts_filter_following(self):
+        """*** Should foo follow juan but not zoe, then /posts/following should return only juan's posts in reverse order ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        zoe = createUser("zoe", "zoe@example.com", "example")
+        foo.follow(juan)
+        m1 = "New post message 1"
+        p = Post()
+        p.post(m1, juan)
+        m2 = "New post message 2"
+        p = Post()
+        p.post(m2, juan)
+        m3 = "New post message 3"
+        p = Post()
+        p.post(m3, zoe)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/posts/following")
+        data = json.loads(response.content)
+        self.assertEqual(len(data), 2)
+        self.assertEqual(data[0]["message"], m2)
+        self.assertEqual(data[1]["message"], m1)
+        self.assertEqual(data[0]["user"]["username"], "juan")
+        self.assertEqual(data[1]["user"]["username"], "juan")
 
 class TestModelPost(TestCase):
 

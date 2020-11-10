@@ -4,28 +4,58 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#new-post-view').style.display = 'none';
 
   // All posts event
-  document.querySelector('#all-posts-link').addEventListener('click', () => {
+  document.querySelector('#posts-link').addEventListener('click', (e) => {
     posts();
   });
 
-  // New post event
-  document.querySelector('#new-post-link').addEventListener('click', (e) => {
-    new_post(e);
-  });
-
   // All posts event
-  document.querySelector('#following-link').addEventListener('click', (e) => {
-    following(e);
-  });
+  const allPostsLink = document.querySelector('#allPosts')
+  if (allPostsLink) {
+    allPostsLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelector('#allPostsLabel').classList.add('active');
+      document.querySelector('#followingPostsLabel').classList.remove('active');
+      posts();
+    });
+  }
+
+  // Following posts event
+  const followingLink = document.querySelector('#followingPosts');
+  if (followingLink) {
+    followingLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelector('#allPostsLabel').classList.remove('active');
+      document.querySelector('#followingPostsLabel').classList.add('active');
+      following();
+    });
+  }
+
+  // New post event
+  const newPostLink = document.querySelector('#new-post-link');
+  if (newPostLink) {
+    newPostLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      new_post();
+    });
+  }
 
   posts();
 
 });
 
+function new_post() {
+  const postsView = document.querySelector('#posts-view');
+  clearNode(postsView);
+  postsView.style.display = 'none';
+  document.querySelector('#posts-selector').style.display = 'none';
+  document.querySelector('#new-post-view').style.display = 'block';
+}
+
 function posts() {
+
+  recreatePostsView();
   document.querySelector('#posts-view').style.display = 'block';
   document.querySelector('#new-post-view').style.display = 'none';
-  document.querySelector('#indexHeading').innerHTML = "Latest Posts";
 
   // Get latests mails from mailbox and render them
   fetch(`/posts/all`)
@@ -35,15 +65,18 @@ function posts() {
   });
 }
 
-function new_post(event) {
-  document.querySelector('#posts-view').style.display = 'none';
-  document.querySelector('#new-post-view').style.display = 'block';
-}
+function following() {
 
-function following(event) {
+  recreatePostsView();
   document.querySelector('#posts-view').style.display = 'block';
   document.querySelector('#new-post-view').style.display = 'none';
-  document.querySelector('#indexHeading').innerHTML = "Latest Following Posts";
+
+  // Get latests mails from mailbox and render them
+  fetch(`/posts/following`)
+  .then(response => response.json())
+  .then(data => {
+      data.forEach(addPost);
+  });
 }
 
 function addPost(contents) {
@@ -88,4 +121,16 @@ function addPost(contents) {
 
   // add post to posts_view
   document.querySelector('#posts-view').append(post);
+}
+
+function clearNode(node) {
+  node.innerHTML = '';
+}
+
+function recreatePostsView() {
+  const postsView = document.querySelector('#posts-view');
+  clearNode(postsView);
+  const headingNode = document.createElement('h3');
+  headingNode.innerHTML = 'Latest Posts';
+  postsView.append(headingNode);
 }

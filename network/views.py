@@ -19,21 +19,26 @@ def index(request):
     });
 
 def posts(request, filter):
+    if request.method != "GET":
+        raise Http404("Only GET requests allowed on this URL")
+    if filter not in ["all", "following"]:
+        raise Http404("Unrecognized filter")
+
+    # filter: following
+    if filter == "following":
+        if not request.user.is_authenticated:
+            raise Http404("Only logged in users allowed on this filter request")
+        else:
+            myUser = User.objects.get(username=request.user.username)
+            usersFollowed = myUser.following.all()
+            posts = Post.objects.filter(user__in=usersFollowed).order_by('-created_at')
     # filter: all
-    posts = Post.objects.all().order_by('-created_at')
+    elif filter == "all":
+        posts = Post.objects.all().order_by('-created_at')
+
+    # return filtered posts
     return JsonResponse([post.serialize() for post in posts], safe=False)
-"""
-@login_required(login_url="network:login")
-def following(request):
-    # TODO: Pagination
-    myUser = User.objects.get(username=request.user.username)
-    usersFollowed = myUser.following.all()
-    posts = Post.objects.filter(user__in=usersFollowed).order_by('-created_at')
-    return render(request, "network/index.html", {
-        "posts": posts,
-        "postForm": PostForm()
-    });
-"""
+
 def profile(request, usernamestr):
     if request.method == "POST":
         raise Http404("Only GET requests allowed on this URL")
