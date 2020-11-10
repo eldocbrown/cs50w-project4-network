@@ -12,9 +12,7 @@ from .forms import PostForm
 
 def index(request):
     # TODO: Pagination
-    posts = Post.objects.all().order_by('-created_at')
     return render(request, "network/index.html", {
-        "posts": posts,
         "postForm": PostForm()
     });
 

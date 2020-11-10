@@ -41,6 +41,25 @@ class TestsPostModel(TestCase):
         p.save()
         self.assertTrue(abs(p.created_at - timezone.now()) < timezone.timedelta(seconds=5))
 
+    def test_model_post_serialize(self):
+        """*** Should a post be created, then can be serialized ***"""
+        u = createUser("foo", "foo@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, u)
+        self.assertJSONEqual("{\"message\": \"New post message 1\",\"user\": {\"username\": \"foo\"}, \"created_at\": \"" + datetime.now().strftime("%b %-d %Y, %-I:%M %p") + "\"}", p.serialize())
+
+class TestUserModel(TestCase):
+
+    def test_follow(self):
+        """*** Should foo follow juan, then juan followers must return foo ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        foo.follow(juan)
+        self.assertIn(foo, juan.followers.all())
+        self.assertIn(juan, foo.following.all())
+        self.assertNotIn(foo, juan.following.all())
+
 class TestIndexView(TestCase):
 
     def test_get_index_view(self):
@@ -74,33 +93,6 @@ class TestPostAction(TestCase):
         c.login(username='foo', password='example')
         response = c.get(f"/post")
         self.assertEqual(response.status_code, 404)
-
-class TestAllPosts(TestCase):
-
-    def test_get_all_posts(self):
-        """*** Index should return 2 posts ***"""
-        u = createUser("foo", "foo@example.com", "example")
-        m = "New post message 1"
-        p = Post()
-        p.post(m, u)
-        m = "New post message 2"
-        p = Post()
-        p.post(m, u)
-        c = Client()
-        response = c.get(f"/")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context["posts"].count(), 2)
-
-class TestUser(TestCase):
-
-    def test_follow(self):
-        """*** Should foo follow juan, then juan followers must return foo ***"""
-        foo = createUser("foo", "foo@example.com", "example")
-        juan = createUser("juan", "juan@example.com", "example")
-        foo.follow(juan)
-        self.assertIn(foo, juan.followers.all())
-        self.assertIn(juan, foo.following.all())
-        self.assertNotIn(foo, juan.following.all())
 
 class TestProfile(TestCase):
 
@@ -398,16 +390,6 @@ class TestPostsRequest(TestCase):
         self.assertEqual(data[1]["message"], m1)
         self.assertEqual(data[0]["user"]["username"], "juan")
         self.assertEqual(data[1]["user"]["username"], "juan")
-
-class TestModelPost(TestCase):
-
-    def test_model_post_serialize(self):
-        """*** Should a post be created, then can be serialized ***"""
-        u = createUser("foo", "foo@example.com", "example")
-        m = "New post message 1"
-        p = Post()
-        p.post(m, u)
-        self.assertJSONEqual("{\"message\": \"New post message 1\",\"user\": {\"username\": \"foo\"}, \"created_at\": \"" + datetime.now().strftime("%b %-d %Y, %-I:%M %p") + "\"}", p.serialize())
 
 if __name__ == "__main__":
     unittest.main()
