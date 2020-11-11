@@ -98,13 +98,20 @@ def unfollow(request, usernamestr):
 
 @login_required(login_url="network:login")
 def like(request, id):
-    if request.method != "POST":
+    if request.method not in ["GET","POST"]:
         raise Http404("Only POST requests allowed on this URL")
-
-    myUser = User.objects.get(username=request.user.username)
-    post = Post.objects.get(pk=id)
-    myUser.like(post)
-    return HttpResponse('OK')
+    if request.method == "POST":
+        myUser = User.objects.get(username=request.user.username)
+        post = Post.objects.get(pk=id)
+        myUser.like(post)
+        return HttpResponse('OK')
+    if request.method == "GET":
+        myUser = User.objects.get(username=request.user.username)
+        post = Post.objects.get(pk=id)
+        if post in myUser.liking.all():
+            return JsonResponse({"message": "true"}, safe=False)
+        else:
+            return JsonResponse({"message": "false"}, safe=False)
 
 @login_required(login_url="network:login")
 def unlike(request, id):

@@ -181,12 +181,12 @@ class TestLikeAction(TestCase):
         response = c.post(f"/like/1")
         self.assertEqual(response.status_code, 200)
 
-    def test_like_return_404_with_get_request(self):
-        """*** Like action must return 404 error code on GET request ***"""
+    def test_like_return_404_with_put_request(self):
+        """*** Like action must return 404 error code on PUT request ***"""
         foo = createUser("foo", "foo@example.com", "example")
         c = Client()
         c.login(username='foo', password='example')
-        response = c.get(f"/like/1")
+        response = c.put(f"/like/1")
         self.assertEqual(response.status_code, 404)
 
     def test_like_action_return_302_logged_out(self):
@@ -194,6 +194,35 @@ class TestLikeAction(TestCase):
         c = Client()
         response = c.post(f"/like/1")
         self.assertEqual(response.status_code, 302)
+
+    def test_like_return_true_get_liked_post(self):
+        """*** Should foo like juan's post, then response 200 should be returned, with true content ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, juan)
+        foo.like(p)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/like/1")
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertJSONEqual("{\"message\": \"true\"}", data)
+
+    def test_like_return_false_get_not_liked_post(self):
+        """*** Should foo not like juan's post, then response 200 should be returned, with true content ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan = createUser("juan", "juan@example.com", "example")
+        m = "New post message 1"
+        p = Post()
+        p.post(m, juan)
+        c = Client()
+        c.login(username='foo', password='example')
+        response = c.get(f"/like/1")
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertJSONEqual("{\"message\": \"false\"}", data)
 
 class TestUnlikeAction(TestCase):
 

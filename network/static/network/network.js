@@ -79,7 +79,7 @@ function following() {
   });
 }
 
-function addPost(contents) {
+async function addPost(contents) {
   // create post container
   const post = document.createElement('div');
   post.className = 'container p-3 my-3 border';
@@ -112,9 +112,41 @@ function addPost(contents) {
   // create like bar
   const imageHeart = document.createElement('img');
   imageHeart.id = 'postLikesheart';
-  imageHeart.src = '/static/network/image/heart.png';
+  const heartSrc = '/static/network/image/heart.png';
+  const heartSrcOutline = '/static/network/image/heart_outline.png';
+  // If user is NOT authenticated
+  if (!document.querySelector('#userNavItem')) {
+    imageHeart.src = heartSrcOutline;
+  // If user IS authenticated
+  } else {
+    // lookup if user is likes this post
+    fetch(`/like/${contents.id}`)
+    .then(response => response.json())
+    .then(result => {
+      if (result.message === 'true') {
+        imageHeart.src = heartSrc;
+        imageHeart.dataset.liking = true;
+      } else {
+        imageHeart.src = heartSrcOutline;
+        imageHeart.dataset.liking = false;
+      }
+
+    // set pointer behaviour
+    imageHeart.addEventListener('mouseover', () => {
+      imageHeart.style.cursor = 'pointer';
+    });
+    imageHeart.addEventListener('mouseout', () => {
+      imageHeart.style.cursor = 'auto';
+    });
+    imageHeart.addEventListener('click', (event) => {
+      handleLikeClick(event);
+    });
+  });
+  }
+
+
+
   post.append(imageHeart);
-  // TODO: count likes
   const likeCount = document.createElement('small');
   likeCount.innerHTML = contents.likes;
   post.append(document.createTextNode("\u00A0"));
@@ -134,4 +166,17 @@ function recreatePostsView() {
   const headingNode = document.createElement('h3');
   headingNode.innerHTML = 'Latest Posts';
   postsView.append(headingNode);
+}
+
+function handleLikeClick(event) {
+  const heart = event.currentTarget;
+  // if user likes this post
+  if (heart.dataset.liking === 'true') {
+    // TODO: unlike post
+    console.log('true');
+  //if user doesn't like this post
+  } else {
+    // TODO: like post
+    console.log('false');
+  }
 }
