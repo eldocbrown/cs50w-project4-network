@@ -3,6 +3,10 @@
 
 {% block body %}
     {% if user.is_authenticated %}
+    <script>
+    var csrftoken = '{{ csrf_token }}';
+    var username = '{{ user.username }}';
+    </script>
     <div class="btn-group btn-group-toggle" data-toggle="buttons" id="posts-selector">
       <label id="allPostsLabel" class="btn btn-outline-secondary active">
         <input type="radio" name="options" id="allPosts" autocomplete="off">All

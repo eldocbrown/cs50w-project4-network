@@ -1,3 +1,6 @@
+const heartSrc = '/static/network/image/heart.png';
+const heartSrcOutline = '/static/network/image/heart_outline.png';
+
 document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelector('#posts-view').style.display = 'block';
@@ -112,8 +115,6 @@ async function addPost(contents) {
   // create like bar
   const imageHeart = document.createElement('img');
   imageHeart.id = 'postLikesheart';
-  const heartSrc = '/static/network/image/heart.png';
-  const heartSrcOutline = '/static/network/image/heart_outline.png';
   // If user is NOT authenticated
   if (!document.querySelector('#userNavItem')) {
     imageHeart.src = heartSrcOutline;
@@ -131,16 +132,19 @@ async function addPost(contents) {
         imageHeart.dataset.liking = false;
       }
 
-    // set pointer behaviour
-    imageHeart.addEventListener('mouseover', () => {
-      imageHeart.style.cursor = 'pointer';
-    });
-    imageHeart.addEventListener('mouseout', () => {
-      imageHeart.style.cursor = 'auto';
-    });
-    imageHeart.addEventListener('click', (event) => {
-      handleLikeClick(event);
-    });
+    //if it is not my posts
+    if (contents.user.username !== username) {
+      // set pointer behaviour
+      imageHeart.addEventListener('mouseover', () => {
+        imageHeart.style.cursor = 'pointer';
+      });
+      imageHeart.addEventListener('mouseout', () => {
+        imageHeart.style.cursor = 'auto';
+      });
+      imageHeart.addEventListener('click', (event) => {
+        handleLikeClick(event, contents.id);
+      });
+    }
   });
   }
 
@@ -149,6 +153,7 @@ async function addPost(contents) {
   post.append(imageHeart);
   const likeCount = document.createElement('small');
   likeCount.innerHTML = contents.likes;
+  likeCount.id = 'likeCount'+ contents.id;
   post.append(document.createTextNode("\u00A0"));
   post.append(likeCount);
 
@@ -168,15 +173,33 @@ function recreatePostsView() {
   postsView.append(headingNode);
 }
 
-function handleLikeClick(event) {
+function handleLikeClick(event, id) {
   const heart = event.currentTarget;
   // if user likes this post
   if (heart.dataset.liking === 'true') {
-    // TODO: unlike post
-    console.log('true');
+    fetch(`/unlike/${id}`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': csrftoken},
+    mode: 'same-origin'
+    })
+    .then(() => {
+      const counter = document.querySelector(`#likeCount${id}`)
+      counter.innerHTML = parseInt(counter.innerHTML) - 1
+      heart.src = heartSrcOutline;
+      heart.dataset.liking = 'false';
+    });
   //if user doesn't like this post
   } else {
-    // TODO: like post
-    console.log('false');
+    fetch(`/like/${id}`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': csrftoken},
+    mode: 'same-origin'
+    })
+    .then(() => {
+      const counter = document.querySelector(`#likeCount${id}`)
+      counter.innerHTML = parseInt(counter.innerHTML) + 1
+      heart.src = heartSrc;
+      heart.dataset.liking = 'true'
+    });
   }
 }
