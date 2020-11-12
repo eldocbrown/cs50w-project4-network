@@ -5,10 +5,12 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
+from django.core.paginator import Paginator
 
 from .models import User, Post
 from .forms import PostForm
 
+itemsPerPage = 10
 
 def index(request):
     # TODO: Pagination
@@ -16,7 +18,7 @@ def index(request):
         "postForm": PostForm()
     });
 
-def posts(request, filter):
+def posts(request, filter, page):
     if request.method != "GET":
         raise Http404("Only GET requests allowed on this URL")
     if filter not in ["all", "following"]:
@@ -30,12 +32,29 @@ def posts(request, filter):
             myUser = User.objects.get(username=request.user.username)
             usersFollowed = myUser.following.all()
             posts = Post.objects.filter(user__in=usersFollowed).order_by('-created_at')
+            pages = Paginator(posts, itemsPerPage)
     # filter: all
     elif filter == "all":
         posts = Post.objects.all().order_by('-created_at')
+        pages = Paginator(posts, itemsPerPage)
 
     # return filtered posts
-    return JsonResponse([post.serialize() for post in posts], safe=False)
+    return JsonResponse([post.serialize() for post in pages.page(page)], safe=False)
+
+def profilePosts(request, usernamestr, page):
+    if request.method != "GET":
+        raise Http404("Only GET requests allowed on this URL")
+
+    try:
+        u = User.objects.get(username=usernamestr)
+        userPosts = u.usrPosts.all().order_by("-created_at")
+        pages = Paginator(userPosts, itemsPerPage)
+        # return filtered posts
+        return JsonResponse([post.serialize() for post in pages.page(page)], safe=False)
+    except Exception as e:
+        raise Http404(f"Error while retrieving user data from {usernamestr}")
+
+
 
 def profile(request, usernamestr):
     if request.method == "POST":

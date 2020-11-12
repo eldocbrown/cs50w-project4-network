@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+
+  currentFilter = 'profile';
+
   evaluateFollowStatus();
   const buttonFollow = document.querySelector('#buttonFollow');
   if (buttonFollow !== null) {
@@ -6,6 +9,10 @@ document.addEventListener('DOMContentLoaded', function() {
       handleFollowClick(event);
     });
   }
+
+  loadProfilePosts(profileusername, 'user-posts-view', currentPage);
+
+  addPaginationEvents();
 })
 
 function evaluateFollowStatus() {
@@ -85,4 +92,33 @@ function handleFollowMouseOut(event) {
   // show button text UNFOLLOW on mouseover (filled red)
   event.currentTarget.className = 'btn-sm btn-primary rounded-pill';
   event.currentTarget.innerHTML = 'Following';
+}
+
+function loadProfilePosts(profile, containerID, page) {
+  const currentFilter = profile;
+  var postCount;
+
+  recreatePostsView();
+
+  // Get latests mails from mailbox and render them
+  fetch(`/profile/${currentFilter}/${page}`)
+  .then(response => response.json())
+  .then(data => {
+      data.forEach(function(element) {
+        addPost(element, containerID);
+      });
+      postCount = countPosts(data);
+      return postCount;
+  })
+  .then(postCount => {
+    evaluatePaginator(postCount);
+  });
+}
+
+function recreatePostsView() {
+  const postsView = document.querySelector('#user-posts-view');
+  clearNode(postsView);
+  const headingNode = document.createElement('h3');
+  headingNode.innerHTML = 'Latest User Posts';
+  postsView.append(headingNode);
 }

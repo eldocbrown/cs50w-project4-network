@@ -20,6 +20,16 @@
     <div id="posts-view">
       <h3>Latest Posts</h3>
     </div>
+    <nav aria-label="Page navigation example" id="paginatorNav">
+      <ul class="pagination justify-content-center">
+        <li id="previuosListItemPag" class="page-item">
+          <a id="previousLinkPag" class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+        </li>
+        <li id="nextListItemPag" class="page-item">
+          <a id="nextLinkPag" class="page-link" href="#">Next</a>
+        </li>
+      </ul>
+    </nav>
 
     <div id="new-post-view">
       <h3>New Post</h3>
@@ -40,5 +50,6 @@
 {% endblock %}
 
 {% block script %}
+    <script src="{% static 'network/common.js' %}"></script>
     <script src="{% static 'network/network.js' %}"></script>
 {% endblock %}

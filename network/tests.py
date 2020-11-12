@@ -461,9 +461,9 @@ class TestPostsRequest(TestCase):
     allowedFilters = ["all", "following"]
 
     def test_posts_filter_all_return_200(self):
-        """*** Should I GET /posts/all, return 200 ***"""
+        """*** Should I GET /posts/all/1, return 200 ***"""
         c = Client()
-        response = c.get(f"/posts/all")
+        response = c.get(f"/posts/all/1")
         self.assertEqual(response.status_code, 200)
 
     def test_posts_filter_all_return_404_on_post_request(self):
@@ -473,15 +473,15 @@ class TestPostsRequest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_posts_filter_following_logged_in_return_200(self):
-        """*** Should I GET /posts/following when logged in, return 200 ***"""
+        """*** Should I GET /posts/following/1 when logged in, return 200 ***"""
         u = createUser("foo", "foo@example.com", "example")
         c = Client()
         c.login(username='foo', password='example')
-        response = c.get(f"/posts/following")
+        response = c.get(f"/posts/following/1")
         self.assertEqual(response.status_code, 200)
 
     def test_posts_filter_all_return_all_posts(self):
-        """*** Should I GET /posts/all, then return all posts ***"""
+        """*** Should I GET /posts/all/1, then return all posts ***"""
         u = createUser("foo", "foo@example.com", "example")
         m = "New post message 1"
         p = Post()
@@ -490,7 +490,7 @@ class TestPostsRequest(TestCase):
         p = Post()
         p.post(m, u)
         c = Client()
-        response = c.get(f"/posts/all")
+        response = c.get(f"/posts/all/1")
         data = json.loads(response.content)
         self.assertEqual(len(data), 2)
 
@@ -507,7 +507,7 @@ class TestPostsRequest(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_posts_filter_following(self):
-        """*** Should foo follow juan, then /posts/following should return juan's posts in reverse order ***"""
+        """*** Should foo follow juan, then /posts/following/1 should return juan's posts in reverse order ***"""
         foo = createUser("foo", "foo@example.com", "example")
         juan  = createUser("juan", "juan@example.com", "example")
         foo.follow(juan)
@@ -519,13 +519,13 @@ class TestPostsRequest(TestCase):
         p.post(m2, juan)
         c = Client()
         c.login(username='foo', password='example')
-        response = c.get(f"/posts/following")
+        response = c.get(f"/posts/following/1")
         data = json.loads(response.content)
         self.assertEqual(len(data), 2)
         self.assertEqual(data[0]["message"], m2)
         self.assertEqual(data[1]["message"], m1)
 
-    def test_posts_filter_following(self):
+    def test_posts_filter_not_following(self):
         """*** Should foo follow juan but not zoe, then /posts/following should return only juan's posts in reverse order ***"""
         foo = createUser("foo", "foo@example.com", "example")
         juan  = createUser("juan", "juan@example.com", "example")
@@ -542,13 +542,41 @@ class TestPostsRequest(TestCase):
         p.post(m3, zoe)
         c = Client()
         c.login(username='foo', password='example')
-        response = c.get(f"/posts/following")
+        response = c.get(f"/posts/following/1")
         data = json.loads(response.content)
         self.assertEqual(len(data), 2)
         self.assertEqual(data[0]["message"], m2)
         self.assertEqual(data[1]["message"], m1)
         self.assertEqual(data[0]["user"]["username"], "juan")
         self.assertEqual(data[1]["user"]["username"], "juan")
+
+    def test_posts_request_page_1_with_10_posts(self):
+        """*** Should foo post 7 posts and juan post 8 posts, then first page request with all filter should return 10 posts ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        for i in range(1,8):
+            m = f"New post message {i}"
+            Post().post(m, foo)
+        for i in range(8,16):
+            m = f"New post message {i}"
+            Post().post(m, juan)
+        c = Client()
+        response = c.get(f"/posts/all/1")
+        data = json.loads(response.content)
+        self.assertEqual(len(data), 10)
+
+    def test_posts_request_page_2_with_5_posts(self):
+        """*** Should foo post 7 posts and juan post 8 posts, then second page request with all filter should return 5 posts ***"""
+        foo = createUser("foo", "foo@example.com", "example")
+        juan  = createUser("juan", "juan@example.com", "example")
+        for i in range(1,8):
+            Post().post(f"New post message {i}", foo)
+        for i in range(8,16):
+            Post().post(f"New post message {i}", juan)
+        c = Client()
+        response = c.get(f"/posts/all/2")
+        data = json.loads(response.content)
+        self.assertEqual(len(data), 5)
 
 if __name__ == "__main__":
     unittest.main()
