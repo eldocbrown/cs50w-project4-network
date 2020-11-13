@@ -162,7 +162,9 @@ function handleEditPostSubmitClick(event) {
   })
   .then(response => response.json())
   .then(result => {
-    // TODO: recreate post
+    const post = document.querySelector(`div#post${postid}`);
+    clearNode(post);
+    createPostContent(result, post);
   })
   .catch((error) => {
     console.error('Error!:', error);

@@ -297,22 +297,6 @@ class TestProfile(TestCase):
         self.assertEqual(response.context["followingCount"], 2)
         self.assertEqual(response.context["followersCount"], 1)
 
-    def test_get_profile_view_context_data_posts(self):
-        """*** Profile view get request context should return posts in reverse chronological order ***"""
-        foo = createUser("foo", "foo@example.com", "example")
-        p = Post()
-        p.post("First post", foo)
-        p = Post()
-        p.post("Second post", foo)
-        p = Post()
-        p.post("Last post", foo)
-        c = Client()
-        response = c.get(f"/profile/foo")
-        self.assertEqual(response.context["userPosts"].count(), 3)
-        self.assertEqual(response.context["userPosts"][2].message, "First post")
-        self.assertEqual(response.context["userPosts"][1].message, "Second post")
-        self.assertEqual(response.context["userPosts"][0].message, "Last post")
-
     def test_get_profile_view_context_data(self):
         """*** Profile view get request context should return username ***"""
         foo = createUser("foo", "foo@example.com", "example")

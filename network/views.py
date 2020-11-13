@@ -74,7 +74,6 @@ def profile(request, usernamestr):
     return render(request, "network/profile.html", {
         "followingCount": followingCount,
         "followersCount": followersCount,
-        "userPosts": userPosts,
         "usernamestr": usernamestr,
         "following": following
     });
