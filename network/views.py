@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.core.paginator import Paginator
+import json
 
 from .models import User, Post
 from .forms import PostForm
@@ -53,8 +54,6 @@ def profilePosts(request, usernamestr, page):
         return JsonResponse([post.serialize() for post in pages.page(page)], safe=False)
     except Exception as e:
         raise Http404(f"Error while retrieving user data from {usernamestr}")
-
-
 
 def profile(request, usernamestr):
     if request.method == "POST":
@@ -159,6 +158,21 @@ def post(request):
             });
     else:
         raise Http404("Only POST request allowed on this URL")
+
+@login_required(login_url="network:login")
+def editPost(request, id):
+    if request.method == "POST":
+        post = Post.objects.get(pk=id)
+        # Check if post edit request is from post owner
+        if (post.user.username == request.user.username):
+            data = json.loads(request.body)
+            post.message = data.get("message")
+            post.save()
+            return JsonResponse(post.serialize(), status=201)
+        else:
+            return JsonResponse({"error": "Post edit not allowed"}, status=400)
+    else:
+        return JsonResponse({"error": "POST request required."}, status=400)
 
 def login_view(request):
     if request.method == "POST":

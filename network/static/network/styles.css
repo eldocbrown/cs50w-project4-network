@@ -2,8 +2,12 @@
   margin: 20px;
 }
 
-#postLikesheart {
+#postLikesheart, #editPost {
   height: 15px;
+}
+
+#editPost {
+  margin-left: 10px;
 }
 
 #profileHeaderContainer {
@@ -22,4 +26,12 @@
 
 #posts-view {
   margin-top: 10px;
+}
+
+#editPostTextArea {
+  margin-top: 10px;
+}
+
+#editPostSubmit {
+  margin-bottom: 10px;
 }
